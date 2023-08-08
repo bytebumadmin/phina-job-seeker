@@ -6,6 +6,10 @@
 int main(int argc, char **argv) {
     assert(job_seeker_db_initialize() == 0);
     char *data;
+    if(job_seeker_email_is_taken(argv[1]) != JOB_SEEKER_OK) {
+        printf("%s\n", job_seeker_error_to_str[job_seeker_error]);
+        return 2;
+    }
     int r = job_seeker_register(&(job_seeker_register_info_t) {
         .email_address = argv[1],
         .first_name = argv[2],

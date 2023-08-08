@@ -1,9 +1,11 @@
 JS=job_seeker
 SRC_DIR=src
 BUILD_DIR=build
+API_DIR=api
 TEST_DIR=test
 SRC_FILES=$(SRC_DIR)/$(JS).c $(SRC_DIR)/$(JS)_mongo_db.c
 LIBS=`pkg-config --libs --cflags uuid libmongoc-1.0`
+KCGI_LIBS=`pkg-config --libs --cflags kcgi-json`
 
 job-seeker-register-build:
 	cc -o $(BUILD_DIR)/js_reg $(SRC_FILES) \
@@ -47,3 +49,14 @@ job-seeker-session-run:
 
 
 job-seeker-session-test: job-seeker-login-test job-seeker-session-clean job-seeker-session-build job-seeker-session-run 
+
+# api
+
+job-seeker-api-reg-build:
+	cc -o $(BUILD_DIR)/js-api-reg $(SRC_FILES) $(API_DIR)/js_register.c \
+	${LIBS} $(KCGI_LIBS)
+
+job-seeker-api-reg-run: job-seeker-api-reg-build
+	cd build && \
+	sudo kfcgi -u www-data -s /tmp/js-api-reg.sock -d -p `pwd` -- \
+	/js-api-reg

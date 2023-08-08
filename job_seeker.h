@@ -13,7 +13,9 @@ int job_seeker_session_create(job_seeker_session_t *session);
 
 int job_seeker_session_exist(char *session_id, job_seeker_session_t **session);
 
-int job_seeker_session_drop(const char *session_id);;
+int job_seeker_session_drop(const char *session_id);
+
+int job_seeker_email_is_taken(const char *email_address);
 
 
 

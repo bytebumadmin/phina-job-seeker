@@ -14,3 +14,5 @@ int job_seeker_db_session_create(job_seeker_session_t *session);
 int job_seeker_db_session_exist(const char *session_id, job_seeker_session_t *session);
 
 int job_seeker_db_session_drop(const char *session_id);
+
+int job_seeker_db_search_by_email(const char *email_address, char **account_id);

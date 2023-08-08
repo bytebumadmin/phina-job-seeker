@@ -3,8 +3,20 @@
 #include "../job_seeker.h"
 #include <uuid/uuid.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-int job_seeker_error;
+enum JOB_SEEKER_ERROR job_seeker_error;
+
+const char *job_seeker_error_to_str[] = {
+    "JOB_SEEKER_OK",
+    "JOB_SEEKER_EMAIL_TAKEN",
+    "JOB_SEEKER_ACCOUNT_NOT_FOUND",
+    "JOB_SEEKER_SESSION_INVALID",
+    "JOB_SEEKER_ACCOUNT_UNVERIFIED",
+    "JOB_SEEKER_SUSPENDED",
+    "JOB_SEEKER_DB_ERROR",
+    "JOB_SEEKER_ERR_MAX"
+};
 
 int job_seeker_initialize() {
     return job_seeker_db_initialize();
@@ -39,4 +51,16 @@ int job_seeker_session_exist(char *session_id, job_seeker_session_t **session) {
 
 int job_seeker_session_drop(const char *session_id) {
     return job_seeker_db_session_drop(session_id);
+}
+
+int job_seeker_email_is_taken(const char *email_address) {
+    char *account_id;
+    if(job_seeker_db_search_by_email(email_address, &account_id) != JOB_SEEKER_OK) {
+        return -1;
+    }
+    if(account_id != NULL) {
+        job_seeker_error = JOB_SEEKER_EMAIL_TAKEN;
+        return -1;
+    }
+    return JOB_SEEKER_OK;
 }

@@ -8,25 +8,30 @@ typedef char* job_seeker_id_t;
 typedef char* job_seeker_session_id_t;
 
 // // single error code variable for the library
-extern int job_seeker_error;
 
 enum JOB_SEEKER_ERROR {
+    JOB_SEEKER_OK,
     JOB_SEEKER_EMAIL_TAKEN,
     JOB_SEEKER_ACCOUNT_NOT_FOUND,
     JOB_SEEKER_SESSION_INVALID,
     JOB_SEEKER_ACCOUNT_UNVERIFIED,
     JOB_SEEKER_SUSPENDED,
-    JOB_SEEKER_DB_ERROR
+    JOB_SEEKER_DB_ERROR,
+    JOB_SEEKER_ERR_MAX
 };
 
+extern enum JOB_SEEKER_ERROR job_seeker_error;
+
+extern const char const *job_seeker_error_to_str[JOB_SEEKER_ERR_MAX+1];
+
 typedef struct job_seeker_register_info {
-    char *first_name;
-    char *last_name;
-    char *email_address;
-    char *phone_number;
-    char *gender;
-    char *password;
-    char *profile_image_id;
+    const char *first_name;
+    const char *last_name;
+    const char *email_address;
+    const char *phone_number;
+    const char *gender;
+    const char *password;
+    const char *profile_image_id;
     struct tm date_of_birth;
 } job_seeker_register_info_t;
 

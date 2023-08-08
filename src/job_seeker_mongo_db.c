@@ -3,6 +3,7 @@
 #include <bson/bson.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 static mongoc_client_t *job_seeker_db_client;
 static mongoc_database_t *job_seeker_db_db;
@@ -122,8 +123,19 @@ cleanup:
 }
 
 int job_seeker_db_initialize() {
+    char line[200];
     if(job_seeker_db_client == NULL) {
         char *client_url = getenv("JOB_SEEKER_MONGO_DB_URL");
+        if(client_url == NULL) {
+            FILE *f = fopen("mongo-db.url", "r");
+            if(f == NULL) {
+                job_seeker_error = JOB_SEEKER_DB_ERROR;
+                return -1;
+            }
+            size_t line_len = 200;
+            fgets(line, line_len, f);
+            client_url = line;
+        }
         mongoc_uri_t *client_uri = mongoc_uri_new_with_error(client_url, &job_seeker_db_error);
         if(client_uri == NULL) {
             //TODO log error
@@ -255,3 +267,38 @@ cleanup:
     return return_code;
 }
 
+int job_seeker_db_search_by_email(const char *email_address, char **user_id) {
+    int return_code = 0;
+    *user_id = NULL;
+    job_seeker_db_query = BCON_NEW(
+        "emailaddress", BCON_UTF8(email_address)
+    );
+     job_seeker_db_opts = BCON_NEW(
+        "projection", 
+        "{", "_id", BCON_BOOL(true), "}",
+        "limit", BCON_INT64(1)
+    );
+    job_seeker_db_cursor = mongoc_collection_find_with_opts(job_seeker_db_collection_accounts,
+    job_seeker_db_query, job_seeker_db_opts, NULL);
+
+    if(job_seeker_db_cursor == NULL) {
+        //log error
+        job_seeker_error = JOB_SEEKER_DB_ERROR;
+        return_code = -1;
+        goto cleanup;
+    }
+    if(mongoc_cursor_next(job_seeker_db_cursor, &job_seeker_db_doc) == false) {
+        goto cleanup;
+    }
+    bson_iter_init_find(&job_seeker_db_doc_iter, job_seeker_db_doc, "_id");
+    const bson_oid_t *oid = bson_iter_oid(&job_seeker_db_doc_iter);
+    bson_oid_to_string(oid, oid_string);
+    *user_id = oid_string;
+cleanup:
+    if(job_seeker_db_cursor) {
+        mongoc_cursor_destroy(job_seeker_db_cursor);
+    }    
+    bson_destroy(job_seeker_db_query);
+    bson_destroy(job_seeker_db_opts);
+    return return_code;
+}
